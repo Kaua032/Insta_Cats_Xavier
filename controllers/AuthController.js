@@ -1,27 +1,36 @@
 //1º PRECISO importar o arquivo de modulo
-const User = require('../models/User')
+const User = require("../models/User");
+const bcrypt = require("bcryptjs");
 
-module.exports = class AuthController{
-    static login(require, response){
-        //render -> diretório do projeto - nomeArquivo
-        //redirect -> Mandar para uma ROTA - /
-        return response.render('auth/login')
+module.exports = class AuthController {
+  static async login(request, response) {
+    const { email, password } = request.body;
+
+    const ifUserExists = User.findOne({ where: email });
+    console.log(ifUserExists);
+
+    if (ifUserExists) {
+      // const passwordIsValid = await bcrypt.compare(password, ifUserExists.password);
     }
-    static register(require, response){
-        return response.render('auth/register');
+
+    return response.render("auth/login");
+  }
+  static register(request, response) {
+    return response.render("auth/register");
+  }
+
+  static async registerPost(request, response) {
+    const { name, email, password } = request.body;
+
+    const register = await User.create({ name, email, password });
+
+    try {
+      if (register) {
+        request.flash("login", `${register.dataValues.name}`);
+        return response.render("auth/register");
+      }
+    } catch (error) {
+      console.error(error);
     }
-
-    static async registerPost(request, response){
-        const { name, email, password } = request.body
-
-        const register = await User.create({ name, email, password });
-
-        try{
-            if(register) {
-                return response.redirect("/register");
-            }
-        }catch(error) {
-            console.error(error);
-        }
-    }
-}
+  }
+};
